@@ -1,0 +1,227 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{bbm}
+\usepackage{BOONDOX-cal}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,color}
+\usepackage[format=plain,justification=centering]{caption}
+\usepackage{stmaryrd}
+\usepackage{lastpage}
+\usepackage[left=1in, right=1in, top=4cm, bottom=1in, headheight=2in, headsep=0.54cm]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+
+\newcommand{\Rset}{{\mathbb{R}}}
+\newcommand{\Nset}{{\mathbb{N}}}
+\newcommand{\Covar}[2]{{\Expect{\left(#1 - \Expect{#1}\right)\left(#2 - \Expect{#2}\right)^t}}}
+\newcommand{\q}{\rm{q\hspace{0.1ex}\rule[-0.5ex]{0.2ex}{1.4ex}\hspace{0.2ex}}}
+\newcommand{\qt}{\rm{\widetilde{q}\hspace{0.1ex}\rule[-0.5ex]{0.2ex}{1.4ex}\hspace{0.2ex}}}
+% \newcommand{\nRightarrow}{\rm{\Longrightarrow\hspace{-3ex} / \hspace{0.2ex}}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\z}{\mathbf{z}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\U}{\mathbf{U}}
+\newcommand{\C}{\mathbf{C}}
+\newcommand{\Q}{\textit{Q}}
+\newcommand{\PP}{\textit{P}}
+\newcommand{\Y}{Y^{\tiny{exp}}}
+\newcommand{\Ys}{Y^{\tiny{sim}}}
+\newcommand{\thetabf}{\boldsymbol{\theta}}
+\newcommand{\xibf}{\boldsymbol{\xi}}
+\newcommand{\LE}{\mathcal{L}\mathcal{E}_{\Psi}}
+\renewcommand{\O}{\textit{\textbf{O}}}
+\renewcommand{\o}{\textit{\textbf{o}}}
+\renewcommand{\ne}{{n_{t}}}
+\renewcommand{\nsim}{{N_{t}}}
+\newcommand{\sd}{{\rm sd}}
+\newcommand{\cg}{\textcolor{green}}
+\newcommand{\crr}{\textcolor{red}}
+\newcommand{\ora}{\textcolor{orange}}
+\newcommand{\epsbf}{\boldsymbol{\epsilon}}
+\newcommand{\epsilonbf}{\boldsymbol{\epsilon}}
+\newcommand{\ee}{\mathbf{e}}
+\newcommand{\alphabf}{\boldsymbol{\alpha}}
+\usepackage{listings}
+
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+
+\fancyfoot[C]{\textbf{Page {\thepage} of \pageref{LastPage}}} 
+
+
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{}
+\fancyhead[R]{}
+
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[L]{}
+\fancyfoot[R]{}
+
+\title{Classification d'objets par réseaux de neurones}
+\author{
+  Alice LEBRUN
+}
+\date{28 mars 2025}
+\begin{document}
+\maketitle
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Le but de ce projet est de construire un algorithme de classification (=classifieur)
+permettant de prédire l'état (efficace/inefficace) d'un objet décrit
+par trois paramètres (nombre d'heures d'utilisation quotidienne,
+consommation électrique et âge de l'objet en mois).
+
+Le notebook jupyter {\ttfamily NT306\_Alice\_LEBRUN\_sujet\_2.ipynb}
+contient les fonctions de lecture de la base de données, de
+visualisation, de définition
+des fonctions de coût et des algorithmes d'optimisation pour la
+construction d'un tel classifieur basé sur la
+régression logistique, ainsi que la construction de classifieurs utilisant des perceptrons de complexité croissante.
+
+Il contient l'ensemble des développements spécifiés dans le document
+{\ttfamily evaluation-projet2.pdf} et complète le canevas de notebook
+proposé sur le site \url{https://grosjean1.github.io/post/project}.
+\pagebreak
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Visualisation de la base de données}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Les différents objets présents dans la base de données sont dénommés
+Camera (1087 occurences), Lights (1087 occurences), Security System (1068 occurences),
+Smart Speaker (1108 occurences) et Thermostat (1039 occurences).
+
+On représente graphiquement cette base de données sur la figure
+(\ref{BaseDonnees}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.3\textwidth]{Donnees_Camera.png}%
+  \includegraphics[width=0.3\textwidth]{Donnees_Lights.png}%
+  \includegraphics[width=0.3\textwidth]{Donnees_SecuritySystem.png}\\
+  \includegraphics[width=0.3\textwidth]{Donnees_SmartSpeaker.png}%
+  \includegraphics[width=0.3\textwidth]{Donnees_Thermostat.png}%
+  \caption{\label{BaseDonnees} Visualisation de la base de données.}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Comparaison des classifications}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Dans cette section, nous comparons la performance des différents
+classifieurs (logistique=perceptron zéro couche,
+perceptron une couche et perceptron cinq couches) sur les différents
+types d'objets.
+
+Le critère de performance log-loss d'un classifieur s'interprète de la
+manière suivante:
+\begin{itemize}
+\item Pour une classification parfaite (état prédit=état réel pour
+  chaque instance) il vaut zéro;
+\item Pour une classification complètement fausse (état prédit
+  opposé à l'état réel pour chaque instance) il vaut $+\infty$
+\item Plus il est proche de zéro, plus la classification est
+  performante.
+\end{itemize}
+
+On constate dans le tableau \ref{perfo} que les classifieurs les plus
+performants sont également les plus complexes, c'est-à dire ceux ayant
+le plus grand nombre de paramètres.
+
+La structure du classifieur perceptron à une couche cachée de trois
+neurones est indiquée sur la figure \ref{onelayer}. Chaque neurone
+(ceux de la couche cachée et celui de la sortie) correspond à des
+coefficients à calculer:
+\begin{itemize}
+\item Autant coefficients de la combinaison linéaire
+  reliant le neurone à ses antécédents. Ici, il y a autant de neurones
+  dans la couche cachée que de paramètres en entrée du perceptron (3)
+  donc il y a $4\times 3=12$ coefficients correspondant à ces
+  combinaisons linéaires.
+\item Autant de biais que de neurones: il y a donc 4 coefficients de
+  biais à calculer.
+\end{itemize}
+
+Au bilan, le perceptron à trois entrées, une sortie et une couche
+cachée à trois neurones comporte 16 coefficients.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.75\textwidth]{onelayer.png}
+  \caption{\label{onelayer}Structure du perceptron à 3 entrées, une
+    couche cachée à 3 neurones et une sortie.}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{cccccc}
+       & Camera & Lights & Security System & Smart Speaker & Thermostat \\
+    \hline
+    Logistic &                       0.611 &                    0.599 & 0.600 & 0.612 & 0.597\\
+    One layer &                      0.593 & \textcolor{green}{0.579} &  0.563 & 0.584 & \textcolor{green}{0.570} \\
+    Five layers & \textcolor{green}{0.557} &                    0.591 & \textcolor{green}{0.530} & \textcolor{green}{0.563} & 0.581
+  \end{tabular} 
+  \caption{\label{perfo}Performance des classifications selon l'indicateur
+    log-loss. Plus la valeur est faible, meilleure est la
+    classification. ($\lambda=10^{-4}$ pour la
+    pénalization $L_2$ de tous les classifieurs)}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[height=0.19\textheight]{Logistic_Camera.png}%
+  \includegraphics[height=0.19\textheight]{OneLayer_Camera.png}\\
+  \includegraphics[height=0.19\textheight]{Logistic_Lights.png}%
+  \includegraphics[height=0.19\textheight]{OneLayer_Lights.png}\\
+  \includegraphics[height=0.19\textheight]{Logistic_SecuritySystem.png}%
+  \includegraphics[height=0.19\textheight]{OneLayer_SecuritySystem.png}\\
+  \includegraphics[height=0.19\textheight]{Logistic_SmartSpeaker.png}%
+  \includegraphics[height=0.19\textheight]{OneLayer_SmartSpeaker.png}\\
+  \includegraphics[height=0.19\textheight]{Logistic_Thermostat.png}%
+  \includegraphics[height=0.19\textheight]{OneLayer_Thermostat.png}
+  \caption{\label{Logistic} Visualisation du classieur logistique
+    (gauche) et perceptron 1 couche cachée (droite).}
+\end{figure}
+
+\section{Améliorations possibles}
+
+L'apprentissage des classifieurs est faite en utilisant la totalité de
+la base. Mesurer leur performance sur cette même base est donc
+trompeur puisqu'on risque d'avoir construit un classifieur optimisé
+pour les instances de cette base d'apprentissage au détriment de sa
+capacité à classer correctement une nouvelle instance inconnue.
+
+Une manière de se prémunir de ce risque serait de séparer la base de
+données en deux parties: une partie utilisée pour l'apprenissage (base
+d'apprentissage) et une partie (base de test) utilisée pour évaluer la performance du
+classifieur (performance de test).
+
+Par ailleurs, la construction du classifieur fait intervenir un
+paramètre de régularisation qu'on peut vouloir optimiser. Une manière
+de procéder consiste à découper la base d'apprentissage en deux: une
+base d'apprentissage effectif et une base de validation.
+
+Pour une valeur fixée du paramètre de régularisation on utilise la
+base d'apprentissage effectif pour obtenir la valeur des paramètres du
+classifieur, puis la base de validation est utilisée pour évaluer la
+performance du classifieur ainsi obtenu (performance de validation).
+
+On fait varier la
+valeur du paramètre de régularisation dans un intervalle de manière à
+sélectionner la valeur conduisant à la meilleure performance de validation. On
+calcule alors la performance de test du classifieur optimal.
+
+Pour la base considérée dans le projet, le temps d'apprentissage pour
+une valeur donnée du paramètre de régularisation est très court
+(<0.1s), il serait donc possible de mettre en {\oe}uvre cette approche
+sans souffrir de temps d'apprentissage trops longs.
+\end{document}
